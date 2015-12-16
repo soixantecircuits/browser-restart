@@ -36,10 +36,10 @@ io.on('connection', function (socket) {
     clearInterval(emitInterval)
     emitInterval = setInterval(function checkStatus(){
       console.log('server - ping')
-      socket.emit('ping', { time: new Date }) 
+      socket.emit('ping', { time: new Date })
       startChrome();
     }.bind(socket), checkerDelay)
-    
+
     socket.on('pong', function (data) {
         console.log('pong')
         clearTimeout(restartChromeTimeout)
@@ -49,6 +49,7 @@ io.on('connection', function (socket) {
 var startChrome = function(){
     restartChromeTimeout = setTimeout(function startChrome(){
       console.log('Starting chrome')
+
       if(launchedInstance !== undefined){
         launchedInstance.stop();
         launchedInstance = undefined
