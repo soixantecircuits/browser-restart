@@ -1,0 +1,16 @@
+{
+  "name": "restart",
+  "version": "1.0.0",
+  "description": "restart chrome",
+  "main": "startchrome.js",
+  "dependencies": {
+    "browser-launcher2": "^0.4.6",
+    "socket.io": "^1.3.7"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}
