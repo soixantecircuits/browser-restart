@@ -1,28 +1,37 @@
 var launcher = require( 'browser-launcher2' )
-var app = require('http').createServer(handler)
-var io = require('socket.io')(app)
+var express = require('express');
 var fs = require('fs')
 var loki = require('lokijs')
 
+
+// Loki Database
 var savedDb = fs.readFileSync('data.json', 'utf8')
 var db = new loki('data.json')
 db.loadJSON(savedDb);
 var config = db.getCollection('config')
-
+// Config from Database
 var port = config.findOne({name: 'port'}).value
 var delayStart = config.findOne({name: 'delayStart'}).value * 1000
 var checkerDelay = config.findOne({name: 'checkerDelay'}).value * 1000
 var startURL = config.findOne({name: 'startURL'}).value
 
-app.listen(port)
+
+// Express server
+var app = express();
+var server = app.listen(port, function () {
+  var host = server.address().address;
+  var port = server.address().port;
+
+  console.log('Example app listening at http://%s:%s', host, port);
+});
 
 var restartChromeTimeout
 var emitInterval
 var launchedInstance
 
 var browserBucketOptions = {
-    browser: 'chrome',
-    options: ['--use-fake-device-for-media-stream','--use-fake-ui-for-media-stream']
+  browser: 'chrome',
+  options: ['--use-fake-device-for-media-stream','--use-fake-ui-for-media-stream']
 }
 
 function handler (req, res) {
@@ -38,6 +47,7 @@ function handler (req, res) {
   });
 }
 
+var io = require('socket.io')(server)
 io.on('connection', function (socket) {
     clearInterval(emitInterval)
     emitInterval = setInterval(function checkStatus(){
