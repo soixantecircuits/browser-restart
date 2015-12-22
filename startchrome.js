@@ -1,8 +1,9 @@
 var launcher = require( 'browser-launcher2' )
-var express = require('express');
+var express = require('express')
+var path = require('path')
 var fs = require('fs')
 var loki = require('lokijs')
-
+var bodyParser = require('body-parser')
 
 // Loki Database
 var savedDb = fs.readFileSync('data.json', 'utf8')
@@ -19,12 +20,26 @@ var startURL = config.findOne({name: 'startURL'}).value
 // Express server
 var app = express();
 var server = app.listen(port, function () {
-  var host = server.address().address;
-  var port = server.address().port;
+  var host = server.address().address
+  var port = server.address().port
+  console.log('Example app listening at http://%s:%s', host, port)
+})
 
-  console.log('Example app listening at http://%s:%s', host, port);
-});
+app.set('views', path.join(__dirname, 'views'))
+app.set('view engine', 'jade')
+app.use(bodyParser.json())
+app.use(bodyParser.urlencoded())
+app.use(express.static(path.join(__dirname, 'public')))
 
+app.get('/', function (req, res) {
+  res.render('config', { title: 'Config - Browser Restart', config: {
+    port: port,
+    startURL: startURL
+  }})
+})
+
+
+// Start Chrome 
 var restartChromeTimeout
 var emitInterval
 var launchedInstance
@@ -34,19 +49,7 @@ var browserBucketOptions = {
   options: ['--use-fake-device-for-media-stream','--use-fake-ui-for-media-stream']
 }
 
-function handler (req, res) {
-  fs.readFile(__dirname + '/index.html',
-  function (err, data) {
-    if (err) {
-      res.writeHead(500)
-      return res.end('Error loading index.html')
-    }
-
-    res.writeHead(200)
-    res.end(data);
-  });
-}
-
+// Socket io Part
 var io = require('socket.io')(server)
 io.on('connection', function (socket) {
     clearInterval(emitInterval)
@@ -60,7 +63,7 @@ io.on('connection', function (socket) {
         console.log('pong')
         clearTimeout(restartChromeTimeout)
     });
-});
+})
 
 var startChrome = function(){
     restartChromeTimeout = setTimeout(function startChrome(){

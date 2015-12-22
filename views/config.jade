@@ -1,0 +1,10 @@
+extends layout
+
+block content
+  h1= title
+  ul
+    each val, index in config
+      li= index + ': ' + val
+block script
+  script(type='text/javascript').
+    App.init();
