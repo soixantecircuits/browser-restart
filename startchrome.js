@@ -96,11 +96,12 @@ var startExpressServer = function(){
     }})
   })
   app.get('/restart.js', function(req, res){
+    var socketIOClient = fs.readFileSync(__dirname+'/public/js/socket.io.js', 'utf-8')
     var restartFile = fs.readFileSync(__dirname+'/public/js/restart.js', 'utf-8');
     var address = (server.address().address !== '::') ? server.address().address : 'localhost'
     restartFile = restartFile.replace('[[config.address]]', address)
     restartFile = restartFile.replace('[[config.port]]', port)
-    res.send(restartFile)
+    res.send(socketIOClient+restartFile)
   })
   app.post('/update-conf', function(req, res){
     for (var property in req.body) {
