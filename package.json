@@ -5,6 +5,7 @@
   "main": "startchrome.js",
   "dependencies": {
     "browser-launcher2": "^0.4.6",
+    "lokijs": "^1.3.10",
     "socket.io": "^1.3.7"
   },
   "devDependencies": {},
