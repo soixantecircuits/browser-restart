@@ -15,6 +15,7 @@ var port = config.findOne({name: 'port'}).value
 var delayStart = config.findOne({name: 'delayStart'}).value * 1000
 var checkerDelay = config.findOne({name: 'checkerDelay'}).value * 1000
 var startURL = config.findOne({name: 'startURL'}).value
+var autostart = (config.findOne({name: 'autostart'})) ? config.findOne({name: 'autostart'}).value : false
 
 
 // Express server
@@ -27,19 +28,31 @@ var server = app.listen(port, function () {
 
 app.set('views', path.join(__dirname, 'views'))
 app.set('view engine', 'jade')
+app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
-app.use(bodyParser.urlencoded())
 app.use(express.static(path.join(__dirname, 'public')))
 
 app.get('/', function (req, res) {
-  res.render('config', { title: 'Config - Browser Restart', config: {
-    socketIOServerAdress: (server.address().address !== '::') ? server.address().address : 'localhost',
+  var socketAdress = (server.address().address !== '::') ? server.address().address : 'localhost'
+  socketAdress += ':'+port
+  res.render('config', { title: 'Config - Browser Restart', socketAdress: socketAdress, config: {
     socketIOServerPort: port,
-    startURL: startURL
+    startURL: startURL,
+    autostart: autostart
   }})
 })
 app.post('/update-conf', function(req, res){
-
+  for (var property in req.body) {
+    if (req.body.hasOwnProperty(property)) {
+      if(config.findOne({name: property})){
+        var configItem = config.findOne({name: property});
+        configItem.value = req.body[property];
+        config.update(configItem);
+        db.save();
+      }
+    }
+  }
+  res.sendStatus(200);
 });
 
 // Start Chrome 

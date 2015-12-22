@@ -2,9 +2,19 @@ extends layout
 
 block content
   h1= title
-  ul
+  p= 'Socket.io server actually running on: ' + socketAdress 
+  ul#config-data
     each val, index in config
-      li= index + ': ' + val
+      if val != true && val != false 
+        li= index
+          input(type="text" data-config=index value=val)
+      else
+        li= index
+          if val == true
+            input(type="checkbox" data-config=index checked)
+          else
+            input(type="checkbox" data-config=index)
+  button#update-config Update
 block script
   script(type='text/javascript').
     App.init();
