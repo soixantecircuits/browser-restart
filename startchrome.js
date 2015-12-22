@@ -11,12 +11,19 @@ var db = new loki('data.json')
 db.loadJSON(savedDb);
 var config = db.getCollection('config')
 // Config from Database
-var port = config.findOne({name: 'port'}).value
-var delayStart = config.findOne({name: 'delayStart'}).value * 1000
-var checkerDelay = config.findOne({name: 'checkerDelay'}).value * 1000
-var startURL = config.findOne({name: 'startURL'}).value
-var autostart = (config.findOne({name: 'autostart'})) ? config.findOne({name: 'autostart'}).value : false
-
+var port
+var delayStart
+var checkerDelay
+var startURL
+var autostart
+var updateDatabase = function(){
+  port = config.findOne({name: 'port'}).value
+  delayStart = config.findOne({name: 'delayStart'}).value * 1000
+  checkerDelay = config.findOne({name: 'checkerDelay'}).value * 1000
+  startURL = config.findOne({name: 'startURL'}).value
+  autostart = (config.findOne({name: 'autostart'})) ? config.findOne({name: 'autostart'}).value : false
+}
+updateDatabase()
 
 // Express server
 var app = express();
@@ -41,19 +48,26 @@ app.get('/', function (req, res) {
     autostart: autostart
   }})
 })
+app.get('/restart.js', function(req, res){
+  var restartFile = fs.readFileSync(__dirname+'/public/js/restart.js', 'utf-8');
+  var address = (server.address().address !== '::') ? server.address().address : 'localhost'
+  restartFile = restartFile.replace('[[config.address]]', address)
+  restartFile = restartFile.replace('[[config.port]]', port)
+  res.send(restartFile)
+})
 app.post('/update-conf', function(req, res){
   for (var property in req.body) {
     if (req.body.hasOwnProperty(property)) {
       if(config.findOne({name: property})){
-        var configItem = config.findOne({name: property});
-        configItem.value = req.body[property];
-        config.update(configItem);
-        db.save();
+        var configItem = config.findOne({name: property})
+        configItem.value = req.body[property]
+        config.update(configItem)
+        db.save(updateDatabase)
       }
     }
   }
   res.sendStatus(200);
-});
+})
 
 // Start Chrome 
 var restartChromeTimeout
@@ -80,7 +94,6 @@ io.on('connection', function (socket) {
         clearTimeout(restartChromeTimeout)
     });
 })
-
 var startChrome = function(){
     restartChromeTimeout = setTimeout(function startChrome(){
       console.log('Starting chrome')
