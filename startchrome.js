@@ -6,8 +6,8 @@ var loki = require('lokijs')
 var bodyParser = require('body-parser')
 
 // Loki Database
-var savedDb = fs.readFileSync('data.json', 'utf8')
-var db = new loki('data.json')
+var savedDb = fs.readFileSync(path.join(__dirname, 'data.json'), 'utf8')
+var db = new loki(path.join(__dirname, 'data.json'))
 db.loadJSON(savedDb);
 var config = db.getCollection('config')
 // Config from Database
@@ -23,53 +23,112 @@ var updateDatabase = function(){
   startURL = config.findOne({name: 'startURL'}).value
   autostart = (config.findOne({name: 'autostart'})) ? config.findOne({name: 'autostart'}).value : false
 }
-updateDatabase()
+var saveDatabase = function(updateChrome){
+  db.save(function(){
+    updateDatabase()
+    // Restart Express server
+    stopExpressServer()
+    startExpressServer()
+    // Restart Socket.io server
+    stopSocketIOServer()
+    startSocketIOServer()
+    if(updateChrome){
+      startChrome()
+    }
+  })
+}
+
+var electron = require('electron')
+var electronApp = electron.app
+var BrowserWindow = electron.BrowserWindow
+
+electron.crashReporter.start();
+var mainWindow = null;
+
+electronApp.on('window-all-closed', function() {
+  if (process.platform != 'darwin') {
+    electronApp.quit();
+  }
+});
+electronApp.on('ready', function() {
+  mainWindow = new BrowserWindow({
+    width: 1024, 
+    height: 720,
+  });
+
+  mainWindow.loadURL('http://localhost:'+port);
+  mainWindow.webContents.openDevTools();
+  mainWindow.on('closed', function() {
+    mainWindow = null;
+  });
+});
+
 
 // Express server
-var app = express();
-var server = app.listen(port, function () {
-  var host = server.address().address
-  var port = server.address().port
-  console.log('Example app listening at http://%s:%s', host, port)
-})
+var app
+var server
+var startExpressServer = function(){
+  app = express();
+  server = app.listen(port, function () {
+    var host = server.address().address
+    var port = server.address().port
+    console.log('Example app listening at http://%s:%s', host, port)
+  })
 
-app.set('views', path.join(__dirname, 'views'))
-app.set('view engine', 'jade')
-app.use(bodyParser.urlencoded({ extended: false }))
-app.use(bodyParser.json())
-app.use(express.static(path.join(__dirname, 'public')))
+  app.set('views', path.join(__dirname, 'views'))
+  app.set('view engine', 'jade')
+  app.use(bodyParser.urlencoded({ extended: false }))
+  app.use(bodyParser.json())
+  app.use(express.static(path.join(__dirname, 'public')))
+  app.use(function(req, res, next) {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    next();
+  });
 
-app.get('/', function (req, res) {
-  var socketAdress = (server.address().address !== '::') ? server.address().address : 'localhost'
-  socketAdress += ':'+port
-  res.render('config', { title: 'Config - Browser Restart', socketAdress: socketAdress, config: {
-    socketIOServerPort: port,
-    startURL: startURL,
-    autostart: autostart
-  }})
-})
-app.get('/restart.js', function(req, res){
-  var restartFile = fs.readFileSync(__dirname+'/public/js/restart.js', 'utf-8');
-  var address = (server.address().address !== '::') ? server.address().address : 'localhost'
-  restartFile = restartFile.replace('[[config.address]]', address)
-  restartFile = restartFile.replace('[[config.port]]', port)
-  res.send(restartFile)
-})
-app.post('/update-conf', function(req, res){
-  for (var property in req.body) {
-    if (req.body.hasOwnProperty(property)) {
-      if(config.findOne({name: property})){
-        var configItem = config.findOne({name: property})
-        configItem.value = req.body[property]
-        config.update(configItem)
-        db.save(updateDatabase)
+  app.get('/', function (req, res) {
+    var socketAdress = (server.address().address !== '::') ? server.address().address : 'localhost'
+    socketAdress += ':'+port
+    res.render('config', { title: 'Config - Browser Restart', socketAdress: socketAdress, config: {
+      socketIOServerPort: port,
+      startURL: startURL,
+      autostart: autostart
+    }})
+  })
+  app.get('/restart.js', function(req, res){
+    var restartFile = fs.readFileSync(__dirname+'/public/js/restart.js', 'utf-8');
+    var address = (server.address().address !== '::') ? server.address().address : 'localhost'
+    restartFile = restartFile.replace('[[config.address]]', address)
+    restartFile = restartFile.replace('[[config.port]]', port)
+    res.send(restartFile)
+  })
+  app.post('/update-conf', function(req, res){
+    for (var property in req.body) {
+      if (req.body.hasOwnProperty(property)) {
+        if(config.findOne({name: property})){
+          var configItem = config.findOne({name: property})
+          configItem.value = req.body[property]
+          config.update(configItem)
+          if(property === 'startURL'){
+            saveDatabase(true)
+          } else {
+            saveDatabase()
+          }
+        } else {
+          config.insert({name: property, value: req.body[property]})
+          saveDatabase()
+        }
       }
     }
-  }
-  res.sendStatus(200);
-})
-
-// Start Chrome 
+    res.sendStatus(200);
+  })
+}
+var stopExpressServer = function(){
+  server.close()
+  server = undefined
+  app = undefined
+}
+// Variables for io events and startChrome function
 var restartChromeTimeout
 var emitInterval
 var launchedInstance
@@ -78,22 +137,28 @@ var browserBucketOptions = {
   browser: 'chrome',
   options: ['--use-fake-device-for-media-stream','--use-fake-ui-for-media-stream']
 }
-
 // Socket io Part
-var io = require('socket.io')(server)
-io.on('connection', function (socket) {
-    clearInterval(emitInterval)
-    emitInterval = setInterval(function checkStatus(){
-      console.log('server - ping')
-      socket.emit('ping', { time: new Date })
-      startChrome();
-    }.bind(socket), checkerDelay)
+var io
+var startSocketIOServer = function(){
+  io = require('socket.io')(server)
+  io.on('connection', function (socket) {
+      clearInterval(emitInterval)
+      emitInterval = setInterval(function checkStatus(){
+        console.log('server - ping')
+        socket.emit('ping', { time: new Date })
+        startChrome();
+      }.bind(socket), checkerDelay)
 
-    socket.on('pong', function (data) {
-        console.log('pong')
-        clearTimeout(restartChromeTimeout)
-    });
-})
+      socket.on('pong', function (data) {
+          console.log('pong')
+          clearTimeout(restartChromeTimeout)
+      });
+  })  
+}
+var stopSocketIOServer = function(){
+  io = undefined
+}
+// Start chrome part
 var startChrome = function(){
     restartChromeTimeout = setTimeout(function startChrome(){
       console.log('Starting chrome')
@@ -122,4 +187,7 @@ var startChrome = function(){
     }, delayStart)
 }
 
-// startChrome();
+updateDatabase()
+startExpressServer()
+startSocketIOServer()
+startChrome()
