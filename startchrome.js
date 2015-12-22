@@ -33,11 +33,14 @@ app.use(express.static(path.join(__dirname, 'public')))
 
 app.get('/', function (req, res) {
   res.render('config', { title: 'Config - Browser Restart', config: {
-    port: port,
+    socketIOServerAdress: (server.address().address !== '::') ? server.address().address : 'localhost',
+    socketIOServerPort: port,
     startURL: startURL
   }})
 })
+app.post('/update-conf', function(req, res){
 
+});
 
 // Start Chrome 
 var restartChromeTimeout
