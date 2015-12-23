@@ -101,5 +101,5 @@ node_modules
 #Database
 data.json
 
-#dev Stuff
-someDatas.js
+#Builds
+BrowserRestart*
