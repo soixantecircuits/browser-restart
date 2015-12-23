@@ -15,8 +15,7 @@
     "electron-packager": "^5.2.0"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node startchrome.js"
+    "start": "node startchrome.js",
   },
   "author": "",
   "license": "ISC"
