@@ -1,6 +1,6 @@
 # Browser restart
 
-A script to restart your browser when the wanted url crash. Support only Chrome for now.
+A script to restart your browser on a certain url when it crash. Only Chrome supported for now.
 
 # Installation
 * `npm i`
