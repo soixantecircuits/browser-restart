@@ -19,10 +19,11 @@ var App = (function(my){
     var updateConfigBtn = document.getElementById('update-config');
     updateConfigBtn.addEventListener('click', function(e){
       e.preventDefault();
-      var configList = document.getElementById('config-data').querySelectorAll('li');
+      var configList = document.getElementById('config-data').querySelectorAll('input');
       var newConfig = {};
       for(var i=0; i<configList.length; i++){
-        var item = configList[i].querySelector('input');
+        var item = configList[i];
+        console.log(item);
         if(item.type == 'checkbox'){
           newConfig[item.dataset.config] = item.checked;
         } else {

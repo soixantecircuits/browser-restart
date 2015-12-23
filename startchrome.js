@@ -5,6 +5,9 @@ var fs = require('fs')
 var loki = require('lokijs')
 var bodyParser = require('body-parser')
 
+// Backend Config
+var serverConfig = require('./config.js')
+
 // Loki Database
 var savedDb = fs.readFileSync(path.join(__dirname, 'data.json'), 'utf8')
 var db = new loki(path.join(__dirname, 'data.json'))
@@ -16,12 +19,23 @@ var delayStart
 var checkerDelay
 var startURL
 var autostart
+var browserBucketOptions = {
+  browser: 'chrome',
+  options: []
+}
+
+var formatBrowserArgs = function(){
+  var stringArgs = config.findOne({name: 'browser args'}).value
+  var optArray = stringArgs.split(" ");
+  return optArray;
+}
 var updateDatabase = function(){
   port = config.findOne({name: 'port'}).value
   delayStart = config.findOne({name: 'delayStart'}).value * 1000
   checkerDelay = config.findOne({name: 'checkerDelay'}).value * 1000
   startURL = config.findOne({name: 'startURL'}).value
   autostart = (config.findOne({name: 'autostart'})) ? config.findOne({name: 'autostart'}).value : false
+  browserBucketOptions.options = formatBrowserArgs()
 }
 var saveDatabase = function(updateChrome){
   db.save(function(){
@@ -57,7 +71,9 @@ electronApp.on('ready', function() {
   });
 
   mainWindow.loadURL('http://localhost:'+port);
-  mainWindow.webContents.openDevTools();
+  if(serverConfig.devMode){
+    mainWindow.webContents.openDevTools();
+  }
   mainWindow.on('closed', function() {
     mainWindow = null;
   });
@@ -92,7 +108,8 @@ var startExpressServer = function(){
     res.render('config', { title: 'Config - Browser Restart', socketAdress: socketAdress, config: {
       socketIOServerPort: port,
       startURL: startURL,
-      autostart: autostart
+      autostart: autostart,
+      'browser args': config.findOne({name: 'browser args'}).value
     }})
   })
   app.get('/restart.js', function(req, res){
@@ -110,18 +127,13 @@ var startExpressServer = function(){
           var configItem = config.findOne({name: property})
           configItem.value = req.body[property]
           config.update(configItem)
-          if(property === 'startURL'){
-            saveDatabase(true)
-          } else {
-            saveDatabase()
-          }
         } else {
           config.insert({name: property, value: req.body[property]})
-          saveDatabase()
         }
       }
     }
-    res.sendStatus(200);
+    saveDatabase(true)
+    res.sendStatus(200)
   })
 }
 var stopExpressServer = function(){
@@ -134,10 +146,6 @@ var restartChromeTimeout
 var emitInterval
 var launchedInstance
 
-var browserBucketOptions = {
-  browser: 'chrome',
-  options: ['--use-fake-device-for-media-stream','--use-fake-ui-for-media-stream']
-}
 // Socket io Part
 var io
 var startSocketIOServer = function(){
