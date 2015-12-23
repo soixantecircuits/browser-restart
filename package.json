@@ -12,10 +12,11 @@
     "socket.io": "^1.3.7"
   },
   "devDependencies": {
-    "electron-packager": "^5.2.0"
+    "electron-packager": "^5.2.0",
+    "electron-prebuilt": "^0.36.0"
   },
   "scripts": {
-    "start": "node startchrome.js"
+    "start": "electron startchrome.js"
   },
   "author": "",
   "license": "ISC"
