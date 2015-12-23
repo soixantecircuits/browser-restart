@@ -98,5 +98,8 @@ node_modules
 # Optional REPL history
 .node_repl_history
 
+#Database
+data.json
+
 #dev Stuff
 someDatas.js
