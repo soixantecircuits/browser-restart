@@ -34,7 +34,7 @@ var updateDatabase = function(){
   delayStart = config.findOne({name: 'delayStart'}).value * 1000
   checkerDelay = config.findOne({name: 'checkerDelay'}).value * 1000
   startURL = config.findOne({name: 'startURL'}).value
-  autostart = (config.findOne({name: 'autostart'})) ? config.findOne({name: 'autostart'}).value : false
+  autostart = config.findOne({name: 'autostart'}).value
   browserBucketOptions.options = formatBrowserArgs()
 }
 var saveDatabase = function(updateChrome){
@@ -68,6 +68,8 @@ electronApp.on('ready', function() {
   mainWindow = new BrowserWindow({
     width: 1024, 
     height: 720,
+    minWidth: 800,
+    title: 'Browser Restart'
   });
 
   mainWindow.loadURL('http://localhost:'+port);
@@ -199,4 +201,6 @@ var startChrome = function(){
 updateDatabase()
 startExpressServer()
 startSocketIOServer()
-startChrome()
+if(autostart){
+  startChrome()
+}
