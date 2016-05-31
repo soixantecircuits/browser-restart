@@ -1,11 +1,11 @@
 'use strict'
-var launcher = require('browser-launcher2')
+var launcher = require('james-browser-launcher')
 var express = require('express')
 var path = require('path')
 var fs = require('fs')
 var loki = require('lokijs')
 var bodyParser = require('body-parser')
-
+const fkill = require('fkill')
 // Backend Config
 var serverConfig = require('./config.js')
 
@@ -16,26 +16,27 @@ db.loadJSON(savedDb)
 var config = db.getCollection('config')
 // Config from Database
 var port
-var delayStart
+var delayStart = 5000
 var checkerDelay
 var startURL
 var autostart
 var browserBucketOptions = {
   browser: 'chrome',
+  detached: true,
   options: []
 }
 
 var formatBrowserArgs = function () {
-  var stringArgs = config.findOne({name: 'browser args'}).value
+  var stringArgs = config.findOne({ name: 'browser args' }).value
   var optArray = stringArgs.split(' ')
   return optArray
 }
 var updateDatabase = function () {
-  port = config.findOne({name: 'port'}).value
-  delayStart = config.findOne({name: 'delayStart'}).value * 1000
-  checkerDelay = config.findOne({name: 'checkerDelay'}).value * 1000
-  startURL = config.findOne({name: 'startURL'}).value
-  autostart = config.findOne({name: 'autostart'}).value
+  port = config.findOne({ name: 'port' }).value
+  delayStart = 5000
+  checkerDelay = config.findOne({ name: 'checkerDelay' }).value * 1000
+  startURL = config.findOne({ name: 'startURL' }).value
+  autostart = config.findOne({ name: 'autostart' }).value
   browserBucketOptions.options = formatBrowserArgs()
 }
 var saveDatabase = function (updateChrome) {
@@ -107,12 +108,14 @@ var startExpressServer = function () {
   app.get('/', function (req, res) {
     var socketAdress = (server.address().address !== '::') ? server.address().address : 'localhost'
     socketAdress += ':' + port
-    res.render('config', { title: 'Config - Browser Restart', socketAdress: socketAdress, config: {
+    res.render('config', {
+      title: 'Config - Browser Restart', socketAdress: socketAdress, config: {
         socketIOServerPort: port,
         startURL: startURL,
         autostart: autostart,
-        'browser args': config.findOne({name: 'browser args'}).value
-    }})
+        'browser args': config.findOne({ name: 'browser args' }).value
+      }
+    })
   })
   app.get('/restart.js', function (req, res) {
     var socketIOClient = fs.readFileSync(__dirname + '/public/js/socket.io.js', 'utf-8')
@@ -125,12 +128,12 @@ var startExpressServer = function () {
   app.post('/update-conf', function (req, res) {
     for (var property in req.body) {
       if (req.body.hasOwnProperty(property)) {
-        if (config.findOne({name: property})) {
-          var configItem = config.findOne({name: property})
+        if (config.findOne({ name: property })) {
+          var configItem = config.findOne({ name: property })
           configItem.value = req.body[property]
           config.update(configItem)
         } else {
-          config.insert({name: property, value: req.body[property]})
+          config.insert({ name: property, value: req.body[property] })
         }
       }
     }
@@ -154,7 +157,7 @@ var startSocketIOServer = function () {
   io = require('socket.io')(server)
   io.on('connection', function (socket) {
     clearInterval(emitInterval)
-    emitInterval = setInterval(function checkStatus () {
+    emitInterval = setInterval(function checkStatus() {
       console.log('server - ping')
       socket.emit('ping', { time: new Date })
       startChrome()
@@ -170,19 +173,16 @@ var stopSocketIOServer = function () {
   io = undefined
 }
 // Start chrome part
+const kill = require('tree-kill')
 var startChrome = function () {
-  restartChromeTimeout = setTimeout(function startChrome () {
+  restartChromeTimeout = setTimeout(function startingChrome() {
+    fkill('Google Chrome')
     console.log('Starting chrome')
-
-    if (launchedInstance !== undefined) {
-      launchedInstance.stop()
-      launchedInstance = undefined
-    }
     launcher(function (err, launch) {
       if (err) {
         return console.error(err)
       }
-
+      console.log('starting on: ', startURL)
       launch(startURL, browserBucketOptions, function (err, instance) {
         if (err) {
           return console.error(err)
@@ -191,7 +191,7 @@ var startChrome = function () {
         console.log('Instance started with PID:', instance.pid)
 
         instance.on('stop', function (code) {
-          console.log('Instance stopped with exit code:', code)
+          console.log('Instance ' + instance.pid + ' stopped with exit code:', code)
         })
       })
     })
