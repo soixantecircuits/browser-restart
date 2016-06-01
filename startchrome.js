@@ -1,11 +1,12 @@
 'use strict'
-var launcher = require('james-browser-launcher')
+//var launcher = require('james-browser-launcher')
 var express = require('express')
 var path = require('path')
 var fs = require('fs')
 var loki = require('lokijs')
 var bodyParser = require('body-parser')
 const fkill = require('fkill')
+const exec = require("child_process").exec
 // Backend Config
 var serverConfig = require('./config.js')
 
@@ -149,7 +150,7 @@ var stopExpressServer = function () {
 // Variables for io events and startChrome function
 var restartChromeTimeout
 var emitInterval
-var launchedInstance
+//var launchedInstance
 
 // Socket io Part
 var io
@@ -175,26 +176,34 @@ var stopSocketIOServer = function () {
 // Start chrome part
 const kill = require('tree-kill')
 var startChrome = function () {
+
   restartChromeTimeout = setTimeout(function startingChrome() {
     fkill('Google Chrome')
     console.log('Starting chrome')
-    launcher(function (err, launch) {
-      if (err) {
-        return console.error(err)
-      }
-      console.log('starting on: ', startURL)
-      launch(startURL, browserBucketOptions, function (err, instance) {
-        if (err) {
-          return console.error(err)
-        }
-        launchedInstance = instance
-        console.log('Instance started with PID:', instance.pid)
-
-        instance.on('stop', function (code) {
-          console.log('Instance ' + instance.pid + ' stopped with exit code:', code)
-        })
+    startURL = config.findOne({ name: 'startURL' }).value
+    console.log('sh ' + startURL +'.sh')
+var child = exec('sh chrome.sh',
+    function (error, stdout, stderr) {
+      console.log('stdout: ' + stdout)
+      console.log('Instance started with PID:', child.pid)
+        child.on('stop', function (code) {
+         console.log('Instance ' + child.pid + ' stopped with exit code:', code)
       })
+      if (stderr !== null) {
+        console.log('stderr: ' + stderr)
+      }
+      if (error !== null) {
+        console.log('exec error: ' + error)
+        child.kill()
+      }
+    }
+)
+
+    console.log('Instance started with PID:', child.pid)
+    child.on('stop', function (code) {
+      console.log('Instance ' + child.pid + ' stopped with exit code:', code)
     })
+
   }, delayStart)
 }
 
