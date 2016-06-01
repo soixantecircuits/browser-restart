@@ -158,6 +158,7 @@ var startSocketIOServer = function () {
   io = require('socket.io')(server)
   io.on('connection', function (socket) {
     clearInterval(emitInterval)
+    console.log('connection')
     emitInterval = setInterval(function checkStatus() {
       console.log('server - ping')
       socket.emit('ping', { time: new Date })
@@ -178,23 +179,23 @@ const kill = require('tree-kill')
 var startChrome = function () {
 
   restartChromeTimeout = setTimeout(function startingChrome() {
-    fkill('Google Chrome')
+//  fkill('Google Chrome')
     console.log('Starting chrome')
     startURL = config.findOne({ name: 'startURL' }).value
-    console.log('sh ' + startURL +'.sh')
-var child = exec('sh chrome.sh',
+var child = exec('batch',
     function (error, stdout, stderr) {
       console.log('stdout: ' + stdout)
       console.log('Instance started with PID:', child.pid)
         child.on('stop', function (code) {
          console.log('Instance ' + child.pid + ' stopped with exit code:', code)
       })
+      console.log(child.code)
       if (stderr !== null) {
         console.log('stderr: ' + stderr)
       }
       if (error !== null) {
         console.log('exec error: ' + error)
-        child.kill()
+        //child.kill()
       }
     }
 )
