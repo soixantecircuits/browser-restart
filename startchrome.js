@@ -180,22 +180,23 @@ var stopSocketIOServer = function () {
 // Start chrome part
 var startChrome = function () {
   restartChromeTimeout = setTimeout(function startingChrome () {
-    fkill('Google Chrome')
+//  fkill('Google Chrome')
     console.log('Starting chrome')
     startURL = config.findOne({ name: 'startURL' }).value
-    var child = exec('batch.bat', //batch.bat (Win) sh chrome.sh on (Linux) linux or osx 
+    var child = exec('batch', //batch.bat (Win) sh chrome.sh on (Linux) linux or osx 
     function (error, stdout, stderr) {
       console.log('stdout: ' + stdout)
       console.log('Instance started with PID:', child.pid)
       child.on('stop', function (code) {
         console.log('Instance ' + child.pid + ' stopped with exit code:', code)
       })
+      console.log(child.code)
       if (stderr !== null) {
         console.log('stderr: ' + stderr)
       }
       if (error !== null) {
         console.log('exec error: ' + error)
-        child.kill()
+        //child.kill()
       }
     }
   )
