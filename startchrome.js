@@ -1,12 +1,12 @@
 'use strict'
-//var launcher = require('james-browser-launcher')
+// var launcher = require('james-browser-launcher')
 var express = require('express')
 var path = require('path')
 var fs = require('fs')
 var loki = require('lokijs')
 var bodyParser = require('body-parser')
 const fkill = require('fkill')
-const exec = require("child_process").exec
+const exec = require('child_process').exec
 // Backend Config
 var serverConfig = require('./config.js')
 
@@ -32,10 +32,11 @@ var formatBrowserArgs = function () {
   var optArray = stringArgs.split(' ')
   return optArray
 }
+
 var updateDatabase = function () {
   port = config.findOne({ name: 'port' }).value
   delayStart = 5000
-  checkerDelay = config.findOne({ name: 'checkerDelay' }).value * 1000
+  checkerDelay = config.findOne({ name: 'checkerDelay' }).value // * 1000
   startURL = config.findOne({ name: 'startURL' }).value
   autostart = config.findOne({ name: 'autostart' }).value
   browserBucketOptions.options = formatBrowserArgs()
@@ -58,12 +59,12 @@ var saveDatabase = function (updateChrome) {
 var electron = require('electron')
 var electronApp = electron.app
 var BrowserWindow = electron.BrowserWindow
-//const crashReporter = require('electron').crashReporter
-//crashReporter.start()
+// const crashReporter = require('electron').crashReporter
+// crashReporter.start()
 var mainWindow = null
 
 electronApp.on('window-all-closed', function () {
-  if (process.platform != 'darwin') {
+  if (process.platform !== 'darwin') {
     electronApp.quit()
   }
 })
@@ -114,11 +115,14 @@ var startExpressServer = function () {
         socketIOServerPort: port,
         startURL: startURL,
         autostart: autostart,
+        checkerDelay : config.findOne({ name: 'checkerDelay' }).value, //* 1000,
         'browser args': config.findOne({ name: 'browser args' }).value
       }
     })
   })
+
   app.get('/restart.js', function (req, res) {
+    console.log("Restart.js accessed")
     var socketIOClient = fs.readFileSync(__dirname + '/public/js/socket.io.js', 'utf-8')
     var restartFile = fs.readFileSync(__dirname + '/public/js/restart.js', 'utf-8')
     var address = (server.address().address !== '::') ? server.address().address : 'localhost'
@@ -150,7 +154,7 @@ var stopExpressServer = function () {
 // Variables for io events and startChrome function
 var restartChromeTimeout
 var emitInterval
-//var launchedInstance
+// var launchedInstance
 
 // Socket io Part
 var io
@@ -158,11 +162,11 @@ var startSocketIOServer = function () {
   io = require('socket.io')(server)
   io.on('connection', function (socket) {
     clearInterval(emitInterval)
-    emitInterval = setInterval(function checkStatus() {
+    emitInterval = setInterval(function checkStatus () {
       console.log('server - ping')
-      socket.emit('ping', { time: new Date })
+      socket.emit('ping', { time: new Date() })
       startChrome()
-    }.bind(socket), checkerDelay)
+    }.bind(socket), checkerDelay) 
 
     socket.on('pong', function (data) {
       console.log('pong')
@@ -174,20 +178,17 @@ var stopSocketIOServer = function () {
   io = undefined
 }
 // Start chrome part
-const kill = require('tree-kill')
 var startChrome = function () {
-
-  restartChromeTimeout = setTimeout(function startingChrome() {
+  restartChromeTimeout = setTimeout(function startingChrome () {
     fkill('Google Chrome')
     console.log('Starting chrome')
     startURL = config.findOne({ name: 'startURL' }).value
-    console.log('sh ' + startURL +'.sh')
-var child = exec('sh chrome.sh',
+    var child = exec('batch.bat', //batch.bat (Win) sh chrome.sh on (Linux) linux or osx 
     function (error, stdout, stderr) {
       console.log('stdout: ' + stdout)
       console.log('Instance started with PID:', child.pid)
-        child.on('stop', function (code) {
-         console.log('Instance ' + child.pid + ' stopped with exit code:', code)
+      child.on('stop', function (code) {
+        console.log('Instance ' + child.pid + ' stopped with exit code:', code)
       })
       if (stderr !== null) {
         console.log('stderr: ' + stderr)
@@ -197,13 +198,12 @@ var child = exec('sh chrome.sh',
         child.kill()
       }
     }
-)
+  )
 
     console.log('Instance started with PID:', child.pid)
     child.on('stop', function (code) {
       console.log('Instance ' + child.pid + ' stopped with exit code:', code)
     })
-
   }, delayStart)
 }
 

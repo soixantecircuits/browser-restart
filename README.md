@@ -11,6 +11,12 @@ To build the app in electron, we use [electron packager](https://github.com/maxo
 
 It will build the app for windows 64 bits, with version 0.36.1 of electron. Find more infos to know how to build for your wanted system in [electron packager docs](https://github.com/maxogden/electron-packager#programmatic-api).
 
+```
+Coke-Bercy
+```
+  WIN
+    * Once built, at /root directory(where electron.exe is found) of build place chrome.lnk(contains flags, portable chrome location and page url) and batch.bat(kills all chrome processes and launches chrome.lnk) file.
+
 #Config the app
 After you've built the app, run it, and fill the form with your infos.
 * `port`: the port on wich the app should be running

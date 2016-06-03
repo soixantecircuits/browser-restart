@@ -9,7 +9,7 @@ block content
       fieldset
         each val, index in config
           div.pure-control-group
-            if val != true && val != false 
+            if val != true && val != false
               label(for=index)= index
               input(type="text" class="pure-input-2-3" id=index data-config=index value=val)
             else
