@@ -22,6 +22,8 @@ After you've built the app, run it, and fill the form with your infos.
 * `port`: the port on wich the app should be running
 * `startURL`: the url the app must look to know when browser crash.
 * `autostart`: if true, the app will, at launch, open the startURL in your browser
+* `httpsPort`: the port on wich the secure app should be running
+* `certPath`: the path to the certs
 * `browser args`: the arguments to launch browser with
 
 #Setup the website

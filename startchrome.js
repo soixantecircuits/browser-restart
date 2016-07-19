@@ -10,16 +10,22 @@ const exec = require('child_process').exec
 // Backend Config
 var serverConfig = require('./config.js')
 
+var https = require('https')
+
 // Loki Database
 var savedDb = fs.readFileSync(path.join(__dirname, 'data.json'), 'utf8')
 var db = new loki(path.join(__dirname, 'data.json'))
 db.loadJSON(savedDb)
 var config = db.getCollection('config')
+
 // Config from Database
 var port
+var portHttps
 var delayStart = 5000
 var checkerDelay
 var startURL
+var httpsPort
+var certPath
 var autostart
 var browserBucketOptions = {
   browser: 'chrome',
@@ -38,6 +44,8 @@ var updateDatabase = function () {
   delayStart = 5000
   checkerDelay = config.findOne({ name: 'checkerDelay' }).value // * 1000
   startURL = config.findOne({ name: 'startURL' }).value
+  httpsPort = config.findOne({ name: 'httpsPort' }).value
+  certPath = config.findOne({ name: 'certPath' }).value
   autostart = config.findOne({ name: 'autostart' }).value
   browserBucketOptions.options = formatBrowserArgs()
 }
@@ -88,12 +96,29 @@ electronApp.on('ready', function () {
 // Express server
 var app
 var server
+var serverHttps
 var startExpressServer = function () {
   app = express()
-  server = app.listen(port, function () {
+  server = app.listen(port, function (err) {
     var host = server.address().address
     var port = server.address().port
-    console.log('Example app listening at http://%s:%s', host, port)
+    console.log('Restart app listening at http://%s:%s', host, port)
+  })
+  var SSLpath
+  if (certPath === ' ' || certPath === undefined) {
+    SSLpath = path.join(__dirname, 'cert')
+  } else {
+    SSLpath = certPath
+  }
+  var privateKey = fs.readFileSync(path.join(SSLpath, 'localhost.key'), 'utf8')
+  var certificate = fs.readFileSync(path.join(SSLpath, 'localhost.crt'), 'utf8')
+  var credentials = {key: privateKey, cert: certificate, passphrase: 'my-passphrase'}
+
+  serverHttps = https.createServer(credentials, app)
+
+  serverHttps.listen(httpsPort, function(err){
+    var host = serverHttps.address().address
+    console.log('Restart *secure* app listening at https://%s:%s', host, httpsPort)
   })
 
   app.set('views', path.join(__dirname, 'views'))
@@ -115,7 +140,9 @@ var startExpressServer = function () {
         socketIOServerPort: port,
         startURL: startURL,
         autostart: autostart,
-        checkerDelay : config.findOne({ name: 'checkerDelay' }).value, //* 1000,
+        checkerDelay: config.findOne({ name: 'checkerDelay' }).value, //* 1000,
+        certPath: certPath,
+        httpsPort: httpsPort,
         'browser args': config.findOne({ name: 'browser args' }).value
       }
     })
@@ -148,6 +175,8 @@ var startExpressServer = function () {
 }
 var stopExpressServer = function () {
   server.close()
+  serverHttps.close()
+  server = undefined
   server = undefined
   app = undefined
 }
@@ -166,7 +195,7 @@ var startSocketIOServer = function () {
       console.log('server - ping')
       socket.emit('ping', { time: new Date() })
       startChrome()
-    }.bind(socket), checkerDelay) 
+    }.bind(socket), checkerDelay)
 
     socket.on('pong', function (data) {
       console.log('pong')
