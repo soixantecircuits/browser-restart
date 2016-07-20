@@ -14,7 +14,8 @@ var App = (function(my){
     req.onload = onLoad;
     req.onerror = onError;
     req.send(JSON.stringify(data));
-  };
+  }
+  
   my.initEvents = function(){
     var updateConfigBtn = document.getElementById('update-config');
     updateConfigBtn.addEventListener('click', function(e){

@@ -153,6 +153,7 @@ var startExpressServer = function () {
     var socketIOClient = fs.readFileSync(__dirname + '/public/js/socket.io.js', 'utf-8')
     var restartFile = fs.readFileSync(__dirname + '/public/js/restart.js', 'utf-8')
     var address = (server.address().address !== '::') ? server.address().address : 'localhost'
+    port = (req.connection.encrypted) ? httpsPort : port 
     restartFile = restartFile.replace('[[config.address]]', address)
     restartFile = restartFile.replace('[[config.port]]', port)
     res.send(socketIOClient + restartFile)
@@ -182,13 +183,22 @@ var stopExpressServer = function () {
 }
 // Variables for io events and startChrome function
 var restartChromeTimeout
+var restartChromeTimeoutSecure
 var emitInterval
+var emitIntervalSecure
 // var launchedInstance
 
 // Socket io Part
 var io
+var iosecure
 var startSocketIOServer = function () {
+
   io = require('socket.io')(server)
+  iosecure = require('socket.io')(serverHttps)
+
+  io.set('origins', '*:*')
+  iosecure.set('origins', '*:*')
+
   io.on('connection', function (socket) {
     clearInterval(emitInterval)
     emitInterval = setInterval(function checkStatus () {
@@ -202,9 +212,23 @@ var startSocketIOServer = function () {
       clearTimeout(restartChromeTimeout)
     })
   })
+  iosecure.on('connection', function (socket) {
+    clearInterval(emitIntervalSecure)
+    emitIntervalSecure = setInterval(function checkStatus () {
+      console.log('server - ping')
+      socket.emit('ping', { time: new Date() })
+      startChrome()
+    }.bind(socket), checkerDelay)
+
+    socket.on('pong', function (data) {
+      console.log('pong')
+      clearTimeout(restartChromeTimeoutSecure)
+    })
+  })
 }
 var stopSocketIOServer = function () {
   io = undefined
+  iosecure = undefined
 }
 // Start chrome part
 var startChrome = function () {
@@ -235,6 +259,7 @@ var startChrome = function () {
       console.log('Instance ' + child.pid + ' stopped with exit code:', code)
     })
   }, delayStart)
+  restartChromeTimeoutSecure = restartChromeTimeout 
 }
 
 updateDatabase()
