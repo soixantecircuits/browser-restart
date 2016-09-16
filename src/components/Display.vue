@@ -8,17 +8,15 @@
       <p>certPath: <input id="certPath"  value={{certPath}}></p>
       <p>httpsPort: <input id="httpsPort"  value={{httpsPort}}></p>
       <p>browser args: <input id="browserArgs"  value={{browserArgs}}></p>
+      <p>Check Delay: <input id="checkDelay" value= {{checkDelay}}></p>
       <button v-on:click="buttonclick" id="update-config">Update</button>
   </div>
 </template>
 <script>
-import { getstartURL, getport, getautostart,
+import { getstartURL, getport, getautostart, getcheckDelay,
   getsocketIOServerPort, gethttpsPort, getcertPath, getbrowserArgs, getallValue } from '../vuex/getters'
 import { butclick } from '../vuex/actions'
-/*
-function butclick() {
-  console.log('im here boys')
-}*/
+
 export default {
   vuex: {
     getters: {
@@ -28,7 +26,8 @@ export default {
       socketIOServerPort: getsocketIOServerPort,
       httpsPort: gethttpsPort,
       certPath: getcertPath,
-      browserArgs: getbrowserArgs
+      browserArgs: getbrowserArgs,
+      checkDelay: getcheckDelay
     },
     actions: {
       buttonclick: butclick

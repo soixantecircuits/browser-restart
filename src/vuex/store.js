@@ -1,8 +1,7 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
-var config = require('../../settings/new_data.json')
+const config = require('../../settings/new_data.json')
 
-// Variable used
 var port = config.port
 var startURL = config.startURL
 var autostart = config.autostart
@@ -10,6 +9,7 @@ var socketIOServerPort = config.socketIOServerPort
 var browserArgs = config['browser args']
 var certPath = config.certPath
 var httpsPort = config.httpsPort
+var checkDelay = config.checkDelay
 
 Vue.use(Vuex)
 
@@ -22,7 +22,8 @@ const state = {
     'socketIOServerPort': socketIOServerPort,
     'browserArgs': browserArgs,
     'certPath': certPath,
-    'httpsPort': httpsPort
+    'httpsPort': httpsPort,
+    'checkDelay': checkDelay
   },
   port: port,
   startURL: startURL,
@@ -30,13 +31,14 @@ const state = {
   socketIOServerPort: socketIOServerPort,
   browserArgs: browserArgs,
   certPath: certPath,
-  httpsPort: httpsPort
+  httpsPort: httpsPort,
+  checkDelay: checkDelay
 }
 
 const mutations = {
 
   BUTCLICK (state) {
-    //IPC RENDERER HERE
+
     const {ipcRenderer} = require('electron')
     console.log('buttonpressed')
 
@@ -47,8 +49,9 @@ const mutations = {
     state.startURL = document.getElementById('startURL').value
     state.socketIOServerPort = document.getElementById('socketIOServerPort').value
     state.browserArgs = document.getElementById('browserArgs').value
+    state.checkDelay = document.getElementById('checkDelay').value
     print_value()
-    ipcRenderer.send('butpressed')
+    ipcRenderer.send('butpressed', state.startURL, state.port, state.checkDelay)
   }
 }
 
@@ -62,6 +65,7 @@ function print_value () {
   console.log('browser args: ' + state.browserArgs)
   console.log('certPath: ' + state.certPath)
   console.log('httpsPort: ' + state.httpsPort)
+  console.log('checkDelay: ' + state.checkDelay)
 }
 
 export default new Vuex.Store({

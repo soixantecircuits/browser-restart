@@ -1,6 +1,3 @@
-// With ES6 you can also write it as:
-// export const getCount = state => state.count
-
 export function getstartURL (states) {
   return states.startURL
 }
@@ -27,4 +24,7 @@ export function getcertPath (states) {
 
 export function gethttpsPort (states) {
   return states.httpsPort
+}
+export function getcheckDelay (states) {
+  return states.checkDelay
 }

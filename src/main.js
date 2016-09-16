@@ -12,6 +12,7 @@ var socketIOServerPort = config.socketIOServerPort
 var browserArgs = config['browser args']
 var certPath = config.certPath
 var httpsPort = config.httpsPort
+var checkDelay = config.checkDelay
 
 console.log('-----------------------------')
 console.log('port: ' + port)
@@ -21,6 +22,7 @@ console.log('socketIOServerPort: ' + socketIOServerPort)
 console.log('browser args: ' + browserArgs)
 console.log('certPath: ' + certPath)
 console.log('httpsPort: ' + httpsPort)
+console.log('checkDelay' + checkDelay)
 
 const App = Vue.extend({})
 

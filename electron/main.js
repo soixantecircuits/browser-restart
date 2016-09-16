@@ -3,29 +3,33 @@ const config = require('../config/index')
 const electron = require('electron')
 const launcher = require('james-browser-launcher')
 const fkill = require('fkill')
-// In main process.
+const myvalue = require('../settings/new_data.json')
 const {ipcMain} = require('electron')
-const request = require('request');
+const request = require('request')
+
+var myport = myvalue.port
+var startURL = myvalue.startURL
+var checkDelay = myvalue.checkDelay
 var restartChromeTimeout
 var emitInterval
 var launchedInstance
-var startURL// = 'www.google.com'
-var port
 
-setInterval(function() {
-request('http://localhost:3000', function (error, response, body) {
-  if (error) {
-    startChrome()
-  }
+var myIntervalFunc = function () {
+  clearInterval(interval)
+  request('http://localhost:' + myport, function (error, response, body) {
+    if (error) {
+      startChrome()
+    }
+  })
+  interval = setInterval(myIntervalFunc, checkDelay)
+}
+var interval = setInterval(myIntervalFunc, checkDelay)
+
+ipcMain.on('butpressed', (event, mystartURL, theport, mycheckdelay) => {
+  startURL = mystartURL
+  myport = theport
+  checkDelay = mycheckdelay
 })
-}, 5000 )
-
-ipcMain.on('butpressed', function(){
-  //console.log(arg)  // prints "ping"
-
-//  event.sender.send('asynchronous-reply', 'pong')
-})
-
 
 var browserBucketOptions = {
   browser: 'chrome',
@@ -55,11 +59,6 @@ var startChrome = function () {
     })
   }, 100)
 }
-/*
-ipcMain.on('synchronous-message', (event, arg) => {
-  console.log(arg)  // prints "ping"
-  event.returnValue = 'pong'
-})*/
 // Module to control application life.
 const app = electron.app
 // Module to create native browser window.
