@@ -1,24 +1,46 @@
-# Browser restart
+# ref-brower
 
-A script to restart your browser on a certain url when it crash. Only Chrome supported for now.
+> A Neodymium project
 
-# Installation
-* `npm i`
+[![js-standard-style](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](http://standardjs.com/)
 
-# Build
-To build the app in electron, we use [electron packager](https://github.com/maxogden/electron-packager). Here is an example of command to build the app: 
-`electron-packager . BrowserRestart --platform=win32 --arch=x64 --version=0.36.1`
+[![forthebadge](http://forthebadge.com/images/badges/built-with-love.svg)](http://forthebadge.com)
+[![forthebadge](http://forthebadge.com/images/badges/makes-people-smile.svg)](http://forthebadge.com)
+[![forthebadge](http://forthebadge.com/images/badges/uses-js.svg)](http://forthebadge.com)
+[![forthebadge](http://forthebadge.com/images/badges/uses-badges.svg)](http://forthebadge.com)
 
-It will build the app for windows 64 bits, with version 0.36.1 of electron. Find more infos to know how to build for your wanted system in [electron packager docs](https://github.com/maxogden/electron-packager#programmatic-api).
+## Build Setup
 
-#Config the app
-After you've built the app, run it, and fill the form with your infos.
-* `port`: the port on wich the app should be running
-* `startURL`: the url the app must look to know when browser crash.
-* `autostart`: if true, the app will, at launch, open the startURL in your browser
-* `httpsPort`: the port on wich the secure app should be running
-* `certPath`: the path to the certs
-* `browser args`: the arguments to launch browser with
+``` bash
+# install dependencies
+npm install
 
-#Setup the website
-To know when to restart the browser, we need to know when the website is down. To do so, you need to load a script on your website, which is: `http://localhost:YOUR_PORT/restart.js`, where `YOUR_PORT` is the port you have define in the config view of the app, generally `3000`.
+# serve with hot reload at localhost:8080
+# -t (or --target=) option is optionnal and override the default webpack target (https://webpack.github.io/docs/configuration.html#target)
+npm start [-- -t {target}] # or `npm run dev`
+
+# launch electron and open a window at localhost:8080
+# you must have run the `npm run dev` command in an other terminal window
+# -s option is optionnal is used to add settings over the default settings
+npm run electron [-- -s {settings}]
+
+# build for production with minifications and package the app.
+npm run build
+npm run build:darwin
+npm run build:linux
+npm run build:win32
+npm run build:all # All platforms, all architectures
+npm run build:no-package # Standalone build
+# Note: use the -t (or --target=) option to override the default webpack target (https://webpack.github.io/docs/configuration.html#target). For example `npm run build -- -t web`.
+
+# package a portable binary for a specific platform from the available build.
+npm run package # package for you current platform
+npm run package:darwin
+npm run package:linux
+npm run package:win32
+npm run package:all # All platforms, all architectures
+```
+
+For detailed explanation on how things work, checkout the [guide](http://soixantecircuits.github.io/nd/).
+
+:wq

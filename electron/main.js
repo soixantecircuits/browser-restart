@@ -1,64 +1,13 @@
 const path = require('path')
 const config = require('../config/index')
 const electron = require('electron')
-const launcher = require('james-browser-launcher')
-const fkill = require('fkill')
-const myvalue = require('../settings/new_data.json')
 const {ipcMain} = require('electron')
-const request = require('request')
+const fs = require('fs')
 
-var myport = myvalue.port
-var startURL = myvalue.startURL
-var checkDelay = myvalue.checkDelay
-var restartChromeTimeout
-var emitInterval
-var launchedInstance
+//init
+var init = require('./init.js')
+init.init()
 
-var myIntervalFunc = function () {
-  clearInterval(interval)
-  request('http://localhost:' + myport, function (error, response, body) {
-    if (error) {
-      startChrome()
-    }
-  })
-  interval = setInterval(myIntervalFunc, checkDelay)
-}
-var interval = setInterval(myIntervalFunc, checkDelay)
-
-ipcMain.on('butpressed', (event, mystartURL, theport, mycheckdelay) => {
-  startURL = mystartURL
-  myport = theport
-  checkDelay = mycheckdelay
-})
-
-var browserBucketOptions = {
-  browser: 'chrome',
-  detached: true,
-  options: []
-}
-var startChrome = function () {
-  restartChromeTimeout = setTimeout(function startingChrome () {
-    fkill('Google Chrome')
-    console.log('Starting chrome')
-    launcher(function (err, launch) {
-      if (err) {
-        return console.error(err)
-      }
-      console.log('starting on: ', startURL)
-      launch(startURL, browserBucketOptions, function (err, instance) {
-        if (err) {
-          return console.error(err)
-        }
-        launchedInstance = instance
-        console.log('Instance started with PID:', instance.pid)
-
-        instance.on('stop', function (code) {
-          console.log('Instance ' + instance.pid + ' stopped with exit code:', code)
-        })
-      })
-    })
-  }, 100)
-}
 // Module to control application life.
 const app = electron.app
 // Module to create native browser window.

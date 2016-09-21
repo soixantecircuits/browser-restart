@@ -4,7 +4,6 @@ import Vue from 'vue'
 import router from './router'
 import './transitions'
 var config = require('../settings/new_data.json')
-
 var port = config.port
 var startURL = config.startURL
 var autostart = config.autostart

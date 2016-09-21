@@ -1,6 +1,6 @@
 {
   "name": "browser-restart",
-  "startURL": "www.google.com",
+  "startURL": "http://localhost:9966/",
   "port": "3000",
   "autostart": 1,
   "socketIOServerPort": "3000",
