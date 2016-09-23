@@ -1,4 +1,6 @@
 <template>
+  <head>
+  </head>
   <div>
     <Display></Display>
   </div>

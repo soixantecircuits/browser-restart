@@ -11,7 +11,7 @@ var myport = myvalue.port
 var startURL = myvalue.startURL
 var checkDelay = myvalue.checkDelay
 var certPath = myvalue.certPath
-var httpsPort = 3434
+var httpsPort = myvalue.httpsPort
 var restartChromeTimeout
 var emitInterval
 var launchedInstance
@@ -38,6 +38,19 @@ var startExpressServer = function () {
     }
   })
 
+  var privateKey = fs.readFileSync(__dirname + '/../cert/key.pem', 'utf-8')
+  var certificate = fs.readFileSync(__dirname + '/../cert/cert.pem', 'utf-8')
+var credentials = {key: privateKey, cert: certificate, passphrase: 'my-passphrase'}
+
+serverHttps = https.createServer(credentials, ap)
+
+serverHttps.listen(httpsPort, function(err){
+  var host = serverHttps.address().address
+  console.log('Restart *secure* app listening at https://%s:%s', host, httpsPort)
+})
+ap.get('/', function (req, res) {
+  res.send("Back to Electron")
+})
   ap.get('/restart.js', function (req, res) {
     var socketIOClient = fs.readFileSync(__dirname + '/../socket.io.js', 'utf-8')
     var restartFile = fs.readFileSync(__dirname + '/../restart.js', 'utf-8')
@@ -49,11 +62,14 @@ var startExpressServer = function () {
 }
 var stopExpressServer = function () {
   server.close()
+  serverHttps.close()
+  serverHttps = undefined
   server = undefined
   ap = undefined
 }
 
 var startSocketIOServer = function () {
+
   io = require('socket.io')(server)
   io.on('connection', function (socket) {
     clearInterval(einterval)
@@ -63,6 +79,7 @@ var startSocketIOServer = function () {
       startChrome()
     }.bind(socket), checkDelay)
     socket.on('back', function () {
+      //IPC renderer ok Stable
       console.log('pong')
       clearTimeout(restartChromeTimeout)
     })
@@ -83,6 +100,7 @@ var startChrome = function () {
       }
       console.log('starting on: ', startURL)
       launch(startURL, browserBucketOptions, function (err, instance) {
+        //ipcMAin off status
         if (err) {
           return console.error(err)
         }
@@ -98,6 +116,7 @@ var startChrome = function () {
 }
 
 function initBrowserRestart () {
+
   ipcMain.on('butpressed', (event, mystartURL, theport, mycheckdelay) => {
     startURL = mystartURL
     myport = theport

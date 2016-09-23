@@ -1,14 +1,19 @@
 <template>
+  <style>
+  p{
+    font-family: Arial, sans-serif;
+  }
+  </style>
   <div class= "display">
-    <h1>Config - Brower Restart{{fileName}}</h1>
-      <p>Socket.io server actually running on : localhost:{{port}}</p>
-      <p>socketIOServerPort: <input id="socketIOServerPort"  value={{port}}></p>
-      <p>startURL: <input id="startURL"  value={{startURL}}></p>
-      <p>autostart: <input type="checkbox" id="autostart">{{autostart}}</p>
-      <p>certPath: <input id="certPath"  value={{certPath}}></p>
-      <p>httpsPort: <input id="httpsPort"  value={{httpsPort}}></p>
-      <p>browser args: <input id="browserArgs"  value={{browserArgs}}></p>
-      <p>Check Delay: <input id="checkDelay" value= {{checkDelay}}></p>
+    <h1>Brower Restart</h1></center>
+    <p>Socket.io server actually running on : localhost:{{port}}</p>
+      <p>socketIOServerPort:</br><input id="socketIOServerPort"  value={{port}}></p>
+      <p>startURL:</br><input id="startURL"  value={{startURL}}></p>
+      <!--<p>autostart:</br><input type="checkbox" id="autostart">{{autostart}}</p>-->
+      <p>certPath:</br><input id="certPath"  value={{certPath}}></p>
+      <p>httpsPort:</br><input id="httpsPort"  value={{httpsPort}}></p>
+    <!--  <p>browser args: </br><input id="browserArgs"  value={{browserArgs}}></p>-->
+      <p>Check Delay: </br><input id="checkDelay" value= {{checkDelay}}></p>
       <button v-on:click="buttonclick" id="update-config">Update</button>
   </div>
 </template>
@@ -22,12 +27,12 @@ export default {
     getters: {
       startURL: getstartURL,
       port: getport,
-      autostart: getautostart,
+    //  autostart: getautostart,
       socketIOServerPort: getsocketIOServerPort,
       httpsPort: gethttpsPort,
       certPath: getcertPath,
-      browserArgs: getbrowserArgs,
-      checkDelay: getcheckDelay
+      checkDelay: getcheckDelay,
+    //  browserArgs: getbrowserArgs
     },
     actions: {
       buttonclick: butclick

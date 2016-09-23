@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 const config = require('../../settings/new_data.json')
+const {ipcRenderer} = require('electron')
 
 var port = config.port
 var startURL = config.startURL
@@ -38,17 +39,14 @@ const state = {
 const mutations = {
 
   BUTCLICK (state) {
-
-    const {ipcRenderer} = require('electron')
     console.log('buttonpressed')
-
     state.httpsPort = document.getElementById('httpsPort').value
     state.port = document.getElementById('socketIOServerPort').value
     state.certPath = document.getElementById('certPath').value
-    state.autostart = document.getElementById('autostart').value
+    //state.autostart = document.getElementById('autostart').value
     state.startURL = document.getElementById('startURL').value
     state.socketIOServerPort = document.getElementById('socketIOServerPort').value
-    state.browserArgs = document.getElementById('browserArgs').value
+    //state.browserArgs = document.getElementById('browserArgs').value
     state.checkDelay = document.getElementById('checkDelay').value
     print_value()
     ipcRenderer.send('butpressed', state.startURL, state.port, state.checkDelay)

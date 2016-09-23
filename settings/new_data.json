@@ -6,6 +6,6 @@
   "socketIOServerPort": "3000",
   "browser args": "--use-fake-device-for-media-stream --use-fake-ui-for-media-stream",
   "certPath": "/home/mesange/soixante-circuit/browser-restart/cert",
-  "httpsPort": "3030",
+  "httpsPort": "3434",
   "checkDelay": "5000"
 }

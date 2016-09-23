@@ -59,10 +59,11 @@ function createWindow () {
   loadSettings(program.settings)
 
   const options = {
-    width: 1920,
-    height: 1080
+    width: 720,
+    height: 600,
+    title: "Browser Restart"
   }
-
+/*
   if (process.env['NODE_ENV'] !== 'dev') {
     // Add kiosk settings to the window
     options.fullScreen = true
@@ -76,7 +77,7 @@ function createWindow () {
       .then((name) => mainWindow.webContents.openDevTools())
       .catch((err) => console.log('An error occurred: ', err))
   }
-
+*/
   options.webPreferences = {
     plugins: true,
     directWrite: true,
